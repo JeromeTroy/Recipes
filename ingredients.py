@@ -13,12 +13,27 @@ class Quantity():
             unit - unit of measure (cups, grams, etc)
             amount - amount of given unit
             meas_type - flag indicating what type of measurement:
-                either "mass" or "volume"
+                either "mass" or "volume" or "individual"
         """
 
         self.__amount__ = amount
         self.__unit__ = unit
         self.__meastype__ = meas_type
+
+    def __add__(self, quantity):
+        if self.__meastype__ != quantity.__meastype__:
+            # measurement types do not match
+            raise MeasurementTypeMissmatch()
+
+        else:
+            if self.__unit__ != quantity.__unit__:
+                print("Warning, not implemented unit conversion!")
+                return None
+            else:
+                result = Quantity(self.__unit__,
+                        self.__amount__ + quantity.__amount__,
+                        meas_type=self.__meastype__)
+                return result
 
     def set_amount(self, amt):
         self.__amount__ = amt
@@ -73,4 +88,9 @@ class Ingredient():
 
     def get_quantity(self):
         return self.__quant__
-        
+
+
+class MeasurementTypeMissmatch(Exception):
+
+    def __init__(self, message="Quantity measurement types do not match"):
+        self.message = message
