@@ -10,7 +10,7 @@ gram = {"display_name": "grams",
 
 pound = {"display_name": "lbs",
         "allowed_names": ["pounds", "pound", "lb", "lbs", "lb.", "lbs."],
-        "amt_in_grams": 453.592, 
+        "amt_in_grams": 453.592,
         "unit_type": "mass"}
 
 mass_ounce = {"display_name": "oz (mass)",
@@ -23,7 +23,7 @@ MASS_UNITS = [gram, pound, mass_ounce]
 # volumetric units
 ml = {"display_name": "mL",
         "allowed_names": ["ml", "milliliters", "milliliter"],
-        "amt_in_ml": 1, 
+        "amt_in_ml": 1,
         "unit_type": "volume"}
 
 fluid_ounce = {"display_name": "oz (fluid)",
@@ -46,7 +46,7 @@ pint = {"display_name": "pints",
         "amt_in_ml": 568.261,
         "unit_type": "volume"}
 
-quart = {"display_name": "quarts", 
+quart = {"display_name": "quarts",
         "allowed_names": ["qt", "qts", "quart", "quarts"],
         "amt_in_ml": 1136.5225,
         "unit_type": "volume"}
@@ -56,8 +56,8 @@ gallon = {"display_name": "gallons",
         "amt_in_ml": 4546.09,
         "unit_type": "volume"}
 
-tablespoon = {"display_name": "tbsp", 
-        "allowed_names": ["tbsp", "tablespoon", "tablespoons"], 
+tablespoon = {"display_name": "tbsp",
+        "allowed_names": ["tbsp", "tablespoon", "tablespoons"],
         "amt_in_ml": 14.8,
         "unit_type": "volume"}
 
@@ -66,12 +66,75 @@ teaspoon = {"display_name": "tsp",
         "amt_in_ml": 5,
         "unit_type": "volume"}
 
-VOLUME_UNITS = [ml, fluid_ounce, liter, cup, pint, quart, gallon, 
+VOLUME_UNITS = [ml, fluid_ounce, liter, cup, pint, quart, gallon,
                 tablespoon, teaspoon]
 
 # each units
-each = {"display_name": "each",
+each = {"display_name": "",
         "allowed_names": ["each", "individual", "ea", "ea."],
-        "amount_in_each": 1,
+        "amt_in_each": 1,
         "unit_type": "individual"}
-EACH_UNITS = [each]
+
+slice = {"display_name": "slice",
+        "allowed_names": ["slice", "slices"],
+        "amt_in_each": 1,
+        "unit_type": "individual"}
+
+loaf = {"display_name": "loaf",
+        "allowed_names": ["loaf", "loaves", "loafs"],
+        "amt_in_each": 16,
+        "unit_type": "individual"}
+
+EACH_UNITS = [each, slice, loaf]
+
+# allowed categories
+CATEGORIES = ["produce", "canned", "meat", "frozen",
+                "dairy", "eggs", "household", "grain",
+                "snack", "beverage", "condiment",
+                "baking", "coffee", "alcohol",
+                "misc"]
+
+POSSIBLE_UNIT_NAMES = []
+MASS_UNIT_NAMES = []
+VOLUME_UNIT_NAMES = []
+EACH_UNIT_NAMES = []
+
+for mass_unit in MASS_UNITS:
+        MASS_UNIT_NAMES += mass_unit["allowed_names"]
+
+for volume_unit in VOLUME_UNITS:
+        VOLUME_UNIT_NAMES += volume_unit["allowed_names"]
+
+for each_unit in EACH_UNITS:
+        EACH_UNIT_NAMES += each_unit["allowed_names"]
+
+POSSIBLE_UNIT_NAMES += MASS_UNIT_NAMES + VOLUME_UNIT_NAMES + EACH_UNIT_NAMES
+
+
+def find_appropriate_unit(string):
+        """
+        Find the appropriate unit given a string
+
+        Input:
+                string - one of allowed_names
+        Output:
+                unit - appropriate unit
+        """
+
+        unit_list = []
+        if string in MASS_UNIT_NAMES:
+                unit_list = MASS_UNITS
+        elif string in VOLUME_UNIT_NAMES:
+                unit_list = VOLUME_UNITS
+        elif string in EACH_UNIT_NAMES:
+                unit_list = EACH_UNITS
+
+        true_unit = None
+        for unit in unit_list:
+                if string in unit["allowed_names"]:
+                        true_unit = unit
+                        break
+        if true_unit is not None:
+                return true_unit
+        else:
+                raise NameError("Unit name not found!")

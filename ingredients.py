@@ -2,7 +2,11 @@
 Module for ingredients
 
 """
+
+import re
+
 from units import *
+
 
 class Quantity():
 
@@ -40,14 +44,14 @@ class Quantity():
                 elif self.get_meas_type() == "volume":
                     base_unit = "amt_in_ml"
                 else:
-                    base_unit = "amount_in_each"
+                    base_unit = "amt_in_each"
 
                 if quantity.get_unit()[base_unit] > perfered_unit[base_unit]:
                     perfered_unit = quantity.get_unit()
                     self.convert(perfered_unit)
                 else:
                     quantity.convert(perfered_unit)
-                
+
                 result = Quantity(self.get_unit(),
                         self.get_amount() + quantity.get_amount())
                 return result
@@ -67,7 +71,7 @@ class Quantity():
 
     def get_unit(self):
         return self.__unit__
-    
+
     def get_meas_type(self):
         return self.get_unit()["unit_type"]
 
@@ -75,7 +79,7 @@ class Quantity():
         """
         Convert quantity from current unit to a new unit of measure
 
-        Input: 
+        Input:
             new_unit - new unit of measure
         """
 
@@ -86,8 +90,11 @@ class Quantity():
             elif new_unit["unit_type"] == "volume":
                 base_unit = "amt_in_ml"
 
+            elif new_unit["unit_type"] == "individual":
+                base_unit = "amt_in_each"
+
             current_unit = self.get_unit()
-            
+
             conversion_factor = current_unit[base_unit] / new_unit[base_unit]
             new_amt = self.get_amount() * conversion_factor
 
@@ -147,13 +154,13 @@ class Ingredient():
 
         else:
             raise IngredientMismatch
-    
+
     def __str__(self):
         """
         Printing helper
         """
         string = str(self.get_quantity())
-        string += " of {:s} ({:s})".format(self.get_name(), self.get_category())
+        string += " {:s} ({:s})".format(self.get_name(), self.get_category())
         return string
 
 class MeasurementTypeMismatch(Exception):
@@ -162,6 +169,74 @@ class MeasurementTypeMismatch(Exception):
         self.message = message
 
 class IngredientMismatch(Exception):
-    
+
     def __init__(self, message="Ingredient types do not match"):
         self.message = message
+
+def parse_line(string):
+    """
+    String parser to determine what ingredient to add
+
+    Input:
+        string - line to parse
+    Output:
+        new ingredient with specified quantity
+    """
+
+    # split string into list of words
+    lst = string.lower().split()
+
+    # initialize
+    category = ""
+    name = ""
+    amount = 0
+    unit = None
+
+    flag = False
+    passed_comma = False
+
+    # parse
+    for block in lst:
+
+        # test for comma (separates descriptors for foods (eg. carrots, shredded))
+        if "," in block:
+            flag = True
+            block = re.sub(",", "", block)
+            print(block)
+
+        # category of food
+        if "(" in block:
+            category = re.sub("[()]", "", block)
+
+        # find correct unit
+        elif block in POSSIBLE_UNIT_NAMES:
+            unit = find_appropriate_unit(block)
+
+        # not a unit either a number or name
+        else:
+            try:
+                # see if is a number
+                amount = float(block)
+
+            except ValueError:
+                # otherwise assign to name
+                if not passed_comma:
+                    name = block
+
+        if flag:
+            flag = not flag
+            passed_comma = True
+
+
+
+    if unit is None:
+        # each unit
+        unit = each
+
+    if category == "":
+        print("Warning, food category not found for '{:s}'", string)
+        category = input("Enter food category: ")
+
+    quantity = Quantity(unit, amount)
+    ingredient = Ingredient(name, category, quantity)
+    return ingredient
